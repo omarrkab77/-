@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>شرح استخدام منظم جدول الدوام</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f1ec;--text:#1d2a33;--muted:#6b7780;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1820;--text:#e8edf0;--muted:#93a4ae}}
+:root[data-theme="dark"]{--bg:#0b1820;--text:#e8edf0;--muted:#93a4ae}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Cairo',Tahoma,sans-serif}
+.wrap{max-width:520px;margin:0 auto;padding:16px 14px 30px}
+h1{font-size:1.2rem;margin:0 0 12px;text-align:center}
+.stage{background:linear-gradient(160deg,#0d324a,#071c2b);border:3px solid #cba358;border-radius:22px;padding:18px 16px;min-height:470px;color:#fff;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.num{color:#cba358;font-weight:700;font-size:.85rem}
+.st{font-size:1.35rem;font-weight:900;margin:4px 0 6px}
+.sd{font-size:.95rem;line-height:1.8;color:#e6edf1;margin-bottom:12px}
+.vis{flex:1;display:flex;align-items:center;justify-content:center;animation:in .6s both}
+@keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.bar{height:5px;background:#ffffff30;border-radius:3px;margin-top:14px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#b88c3e,#d6b265)}
+.ctl{display:flex;gap:8px;margin-top:12px}
+.ctl button{flex:1;font-family:inherit;font-weight:700;border:0;border-radius:12px;padding:10px;cursor:pointer;background:#cba358;color:#fff;font-size:.95rem}
+.dots{display:flex;justify-content:center;gap:6px;margin-top:10px}
+.dots b{width:8px;height:8px;border-radius:50%;background:#8a8f94;opacity:.5}
+.dots b.on{background:#cba358;opacity:1}
+/* عناصر توضيحية */
+.fld{background:#fff;color:#000;border-radius:10px;padding:10px 12px;margin:6px 0;font-size:.9rem;min-height:40px;width:100%;display:flex;gap:8px}
+.fld small{color:#8a6420;font-weight:700;min-width:70px}
+.col{width:100%}
+.mini{width:230px;border:3px solid var(--bd,#cba358);border-radius:var(--r,20px);padding:12px;background:linear-gradient(160deg,var(--c1,#0d324a),var(--c2,#071c2b));text-align:center;transition:all .6s;font-family:var(--ff,'Cairo')}
+.mini .a{font-weight:900;color:var(--tt,#fff);font-size:1.05rem}
+.mini .b{color:var(--ac,#cba358);font-size:.8rem;margin-bottom:8px}
+.mini .d{background:linear-gradient(90deg,var(--g1,#b88c3e),var(--g2,#d6b265));color:#fff;border-radius:var(--r2,10px);font-weight:900;font-size:.85rem;padding:2px;margin-bottom:6px}
+.mini .l{background:#fff;color:#000;border-radius:var(--r2,10px);font-size:.75rem;font-weight:900;padding:6px;margin-bottom:5px;display:flex;justify-content:space-between}
+.mini .l u{text-decoration:none;color:var(--ac,#cba358);font-weight:700}
+.pop{animation:in .5s both}
+.btnx{background:linear-gradient(90deg,#b88c3e,#d6b265);padding:12px 18px;border-radius:12px;font-weight:900;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{transform:scale(1.06)}}
+.url{background:#fff;color:#0d324a;border-radius:30px;padding:10px 16px;font-weight:700;font-size:.85rem;direction:ltr;width:100%;text-align:center}
+.big{font-size:3.2rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>شرح استخدام منظم جدول الدوام الجامعي</h1>
+  <div class="stage">
+    <div class="num" id="num"></div>
+    <div class="st" id="st"></div>
+    <div class="sd" id="sd"></div>
+    <div class="vis" id="vis"></div>
+    <div class="bar"><i id="bar"></i></div>
+  </div>
+  <div class="ctl"><button id="prev">السابق</button><button id="play">إيقاف مؤقت</button><button id="next">التالي</button></div>
+  <div class="dots" id="dots"></div>
+</div>
+<script>
+var $=function(i){return document.getElementById(i)};
+var DUR=9000,cur=0,playing=true,timers=[],t0=0,raf;
+var MINI='<div class="mini" id="mini"><div class="a">البرنامج الأسبوعي للدوام</div><div class="b">كلية طب الأسنان</div><div class="d">السبت</div><div class="l"><span>8:30 – 10:00</span><b>✦ تقويم 2</b><u>نظري</u></div><div class="l"><span>10:30 – 1:00</span><b>✦ ثابتة 3</b><u>عملي</u></div></div>';
+var THEMES=[{c1:'#0d324a',c2:'#071c2b',bd:'#cba358',g1:'#b88c3e',g2:'#d6b265',ac:'#cba358'},{c1:'#6b1f45',c2:'#3d0f27',bd:'#f0b6cf',g1:'#c2477f',g2:'#e88bb2',ac:'#f4b8d2'},{c1:'#0f4a3c',c2:'#07281f',bd:'#d4b86a',g1:'#1f7a5c',g2:'#3fa57f',ac:'#d4b86a'},{c1:'#3b2370',c2:'#1f1240',bd:'#c9b3ff',g1:'#6a4bc4',g2:'#9d84ec',ac:'#cdbcff'}];
+function typeInto(id,txt,delay){
+  var el=$(id),i=0;
+  timers.push(setTimeout(function(){
+    var iv=setInterval(function(){if(!el)return;el.textContent=txt.slice(0,++i);if(i>=txt.length)clearInterval(iv)},90);
+    timers.push(iv);
+  },delay));
+}
+var SC=[
+ {t:'ما هو هذا التطبيق؟',d:'تطبيق يحوّل مواعيد دوامك إلى بطاقة جدول أنيقة جاهزة للمشاركة كصورة. تكتب المحاضرات وهو يرتبها لك.',v:function(){return '<div class="big">🎓</div>'+MINI.replace('class="mini"','class="mini pop"')}},
+ {t:'الخطوة 1: العناوين',d:'من قسم “العناوين” عدّل العنوان الرئيسي والفرعي، مثل اسم كليتك أو فصلك. التغيير يظهر فوراً في المعاينة.',v:function(){return '<div class="col"><div class="fld"><small>الرئيسي</small><span id="f1"></span></div><div class="fld"><small>الفرعي</small><span id="f2"></span></div></div>'},r:function(){typeInto('f1','برنامج الفصل الأول',400);typeInto('f2','كلية الهندسة',2200)}},
+ {t:'الخطوة 2: إضافة محاضرة',d:'اختر اليوم، واكتب وقت البداية والنهاية بحرية، ثم اسم المادة والنوع. اسم المادة ووقت البداية مطلوبان.',v:function(){return '<div class="col"><div class="fld"><small>اليوم</small>الاثنين</div><div class="fld"><small>البداية</small><span id="f1"></span></div><div class="fld"><small>النهاية</small><span id="f2"></span></div><div class="fld"><small>المادة</small><span id="f3"></span></div><div class="fld"><small>النوع</small><span id="f4"></span></div></div>'},r:function(){typeInto('f1','8:30',300);typeInto('f2','10:00 صباحاً',1100);typeInto('f3','برمجة 1',2200);typeInto('f4','عملي',3300)}},
+ {t:'ثم اضغط “إضافة للجدول”',d:'تظهر المحاضرة فوراً في البطاقة، والأيام الفارغة تختفي تلقائياً، والمحاضرات تترتب حسب الوقت.',v:function(){return '<div style="text-align:center"><div class="btnx">إضافة للجدول</div><div style="margin-top:16px">'+MINI.replace('class="mini"','class="mini pop"')+'</div></div>'}},
+ {t:'الحذف والمسح',d:'تحت النموذج قائمة بكل ما أضفته. اضغط ✕ بجانب أي محاضرة لحذفها، أو “مسح الكل” لتبدأ من جديد.',v:function(){return '<div class="col"><div class="fld" style="justify-content:space-between"><span><b>تقويم 2</b> السبت</span><b style="color:#c0504d">✕</b></div><div class="fld" style="justify-content:space-between"><span><b>ثابتة 3</b> السبت</span><b style="color:#c0504d">✕</b></div><div style="text-align:center;margin-top:10px;border:1px solid #c0504d;color:#ff8c88;border-radius:10px;padding:6px">مسح الكل</div></div>'}},
+ {t:'تخصيص التصميم: الثيمات والألوان',d:'اختر ثيماً جاهزاً بنقرة، أو غيّر كل لون بنفسك: الخلفية والإطار وشريط اليوم والعناوين وبطاقة المحاضرة.',v:function(){return MINI},r:function(){var i=0,m=$('mini');var iv=setInterval(function(){i=(i+1)%THEMES.length;var T=THEMES[i];for(var k in T)m.style.setProperty('--'+k,T[k])},1600);timers.push(iv)}},
+ {t:'الخط والحواف والأيقونة',d:'بدّل الخط (Cairo أو Tajawal أو Almarai أو Reem Kufi)، واختر حواف حادة أو دائرية، وأيقونة علوية: قبعة أو كتاب أو سن أو شعارك الخاص.',v:function(){return '<div style="text-align:center"><div class="big" id="ico">🎓</div>'+MINI+'</div>'},r:function(){var f=["'Cairo'","'Tajawal'","'Almarai'","'Reem Kufi'"],ic=['🎓','📖','🦷','⭐'],i=0,m=$('mini');var iv=setInterval(function(){i=(i+1)%4;m.style.setProperty('--ff',f[i]);m.style.setProperty('--r',(i%2?'6px':'22px'));$('ico').textContent=ic[i]},1500);timers.push(iv)}},
+ {t:'مقاس الصورة والتحميل',d:'اختر المقاس: موبايل أو ستوري أو مربع أو عريض. ثم اضغط “تحميل الجدول كصورة” وستنزل بدقة عالية جاهزة للحفظ والمشاركة.',v:function(){return '<div style="text-align:center"><div class="btnx" style="font-size:.9rem">تحميل الجدول كصورة (PNG)</div><div class="big" style="margin-top:16px">🖼️</div><div style="color:#cba358;font-weight:700">جدول-الدوام.png</div></div>'}},
+ {t:'الحفظ التلقائي والمشاركة',d:'كل ما تضيفه ينحفظ تلقائياً على جهازك. وللمشاركة أرسل الرابط على واتساب، وكل شخص يصمم جدوله الخاص دون أن يرى جدول غيره.',v:function(){return '<div class="col"><div class="url">omarrkab77.github.io/Uni</div><div style="text-align:center;margin-top:16px;font-size:2.6rem">💬 ➜ 📱</div></div>'}}
+];
+$('dots').innerHTML=SC.map(function(){return '<b></b>'}).join('');
+function clearT(){timers.forEach(function(x){clearTimeout(x);clearInterval(x)});timers=[]}
+function show(i){
+  cur=(i+SC.length)%SC.length;clearT();
+  var s=SC[cur];
+  $('num').textContent='المشهد '+(cur+1)+' من '+SC.length;
+  $('st').textContent=s.t;$('sd').textContent=s.d;
+  $('vis').innerHTML=s.v();$('vis').style.animation='none';void $('vis').offsetWidth;$('vis').style.animation='';
+  if(s.r)s.r();
+  [].forEach.call($('dots').children,function(b,j){b.className=j===cur?'on':''});
+  t0=performance.now();
+}
+function tick(now){
+  if(playing){
+    var p=(now-t0)/DUR;
+    $('bar').style.width=Math.min(p*100,100)+'%';
+    if(p>=1)show(cur+1);
+  }else t0=now-parseFloat($('bar').style.width||0)/100*DUR;
+  raf=requestAnimationFrame(tick);
+}
+$('next').onclick=function(){show(cur+1)};
+$('prev').onclick=function(){show(cur-1)};
+$('play').onclick=function(){playing=!playing;this.textContent=playing?'إيقاف مؤقت':'تشغيل'};
+$('dots').onclick=function(e){var j=[].indexOf.call(this.children,e.target);if(j>=0)show(j)};
+show(0);raf=requestAnimationFrame(tick);
+</script>
+</body>
+</html>
